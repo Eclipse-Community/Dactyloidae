@@ -325,7 +325,6 @@ main_deunified_sources = [
     'vm/Runtime.cpp',
     'vm/SavedStacks.cpp',
     'vm/Scope.cpp',
-    'vm/SelfHosting.cpp',
     'vm/Shape.cpp',
     'vm/SharedArrayObject.cpp',
     'vm/SharedImmutableStringsCache.cpp',
@@ -400,7 +399,12 @@ SOURCES += [
     'jsutil.cpp',
     'vm/BigIntType.cpp',
     'vm/Initialization.cpp',
+    'vm/SelfHosting.cpp',
 ]
+
+if CONFIG['CC_TYPE'] == 'gcc':
+    SOURCES['vm/SelfHosting.cpp'].flags += ['-fopenmp']
+    OS_LIBS += ['gomp']
 
 if CONFIG['JS_POSIX_NSPR']:
     posix_nspr_deunified_sources = [

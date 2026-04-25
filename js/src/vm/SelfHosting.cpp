@@ -1492,9 +1492,22 @@ CopyValues(SharedMem<To*> dest, SharedMem<From*> src, uint32_t count)
 
     using namespace jit;
 
-    for (; count > 0; count--) {
-        AtomicOperations::storeSafeWhenRacy(dest++,
-                                            To(AtomicOperations::loadSafeWhenRacy(src++)));
+#if defined(_OPENMP)
+    const int64_t openMpCount = int64_t(count);
+    if (openMpCount >= (1 << 14)) {
+#pragma omp parallel for default(none) shared(dest, src, openMpCount) schedule(static)
+        for (int64_t i = 0; i < openMpCount; i++) {
+            uint32_t index = uint32_t(i);
+            AtomicOperations::storeSafeWhenRacy(dest + index,
+                                                To(AtomicOperations::loadSafeWhenRacy(src + index)));
+        }
+        return;
+    }
+#endif
+
+    for (uint32_t i = 0; i < count; i++) {
+        AtomicOperations::storeSafeWhenRacy(dest + i,
+                                            To(AtomicOperations::loadSafeWhenRacy(src + i)));
     }
 }
 
