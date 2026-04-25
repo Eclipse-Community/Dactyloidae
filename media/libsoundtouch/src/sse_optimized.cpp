@@ -250,9 +250,13 @@ uint FIRFilterSSE::evaluateFilterStereo(float *dest, const float *source, uint n
     assert((length % 8) == 0);
     assert(filterCoeffsAlign != NULL);
     assert(((ulongptr)filterCoeffsAlign) % 16 == 0);
+    const uint filterLength = length;
+    const float *coeffsAlign = filterCoeffsAlign;
 
     // filter is evaluated for two stereo samples with each iteration, thus use of 'j += 2'
-    #pragma omp parallel for
+#if defined(_OPENMP)
+    #pragma omp parallel for default(none) shared(source, dest, count, filterLength, coeffsAlign) private(j) schedule(static)
+#endif
     for (j = 0; j < count; j += 2)
     {
         const float *pSrc;
@@ -263,11 +267,11 @@ uint FIRFilterSSE::evaluateFilterStereo(float *dest, const float *source, uint n
 
         pSrc = (const float*)source + j * 2;      // source audio data
         pDest = dest + j * 2;                     // destination audio data
-        pFil = (const __m128*)filterCoeffsAlign;  // filter coefficients. NOTE: Assumes coefficients 
+        pFil = (const __m128*)coeffsAlign;  // filter coefficients. NOTE: Assumes coefficients 
                                                   // are aligned to 16-byte boundary
         sum1 = sum2 = _mm_setzero_ps();
 
-        for (i = 0; i < length / 8; i ++) 
+        for (i = 0; i < filterLength / 8; i ++) 
         {
             // Unroll loop for efficiency & calculate filter for 2*2 stereo samples 
             // at each pass

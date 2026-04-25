@@ -306,25 +306,31 @@ int TDStretch::seekBestOverlapPositionFull(const SAMPLETYPE *refPos)
     // over the permitted range.
     bestCorr = calcCrossCorr(refPos, pMidBuffer, norm);
     bestCorr = (bestCorr + 0.1) * 0.75;
+    const int seekLen = seekLength;
+    const int nChannels = channels;
+    const SAMPLETYPE *midBuffer = pMidBuffer;
 
-    #pragma omp parallel for
-    for (i = 1; i < seekLength; i ++)
+    #if defined(_OPENMP)
+        #pragma omp parallel for default(none) shared(refPos, bestCorr, bestOffs, seekLen, nChannels, midBuffer) private(i) schedule(static)
+    #endif
+    for (i = 1; i < seekLen; i ++)
     {
         double corr;
+        double localNorm;
         // Calculates correlation value for the mixing position corresponding to 'i'
 #if defined(_OPENMP) || defined(ST_SIMD_AVOID_UNALIGNED)
         // in parallel OpenMP mode, can't use norm accumulator version as parallel executor won't
         // iterate the loop in sequential order
         // in SIMD mode, avoid accumulator version to allow avoiding unaligned positions
-        corr = calcCrossCorr(refPos + channels * i, pMidBuffer, norm);
+        corr = calcCrossCorr(refPos + nChannels * i, midBuffer, localNorm);
 #else
         // In non-parallel version call "calcCrossCorrAccumulate" that is otherwise same
         // as "calcCrossCorr", but saves time by reusing & updating previously stored 
         // "norm" value
-        corr = calcCrossCorrAccumulate(refPos + channels * i, pMidBuffer, norm);
+        corr = calcCrossCorrAccumulate(refPos + nChannels * i, midBuffer, norm);
 #endif
         // heuristic rule to slightly favour values close to mid of the range
-        double tmp = (double)(2 * i - seekLength) / (double)seekLength;
+        double tmp = (double)(2 * i - seekLen) / (double)seekLen;
         corr = ((corr + 0.1) * (1.0 - 0.25 * tmp * tmp));
 
         // Checks for the highest correlation value
@@ -333,7 +339,9 @@ int TDStretch::seekBestOverlapPositionFull(const SAMPLETYPE *refPos)
             // For optimal performance, enter critical section only in case that best value found.
             // in such case repeat 'if' condition as it's possible that parallel execution may have
             // updated the bestCorr value in the mean time
-            #pragma omp critical
+#if defined(_OPENMP)
+            #pragma omp critical(soundtouch_bestcorr)
+#endif
             if (corr > bestCorr)
             {
                 bestCorr = corr;
@@ -910,7 +918,9 @@ double TDStretch::calcCrossCorr(const short *mixingPos, const short *compare, do
     if (lnorm > maxnorm)
     {
         // modify 'maxnorm' inside critical section to avoid multi-access conflict if in OpenMP mode
-        #pragma omp critical
+    #if defined(_OPENMP)
+        #pragma omp critical(soundtouch_maxnorm)
+    #endif
         if (lnorm > maxnorm)
         {
             maxnorm = lnorm;

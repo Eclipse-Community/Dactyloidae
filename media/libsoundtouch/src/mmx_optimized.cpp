@@ -119,7 +119,9 @@ double TDStretchMMX::calcCrossCorr(const short *pV1, const short *pV2, double &d
     if (norm > (long)maxnorm)
     {
         // modify 'maxnorm' inside critical section to avoid multi-access conflict if in OpenMP mode
-        #pragma omp critical
+    #if defined(_OPENMP)
+        #pragma omp critical(soundtouch_maxnorm)
+    #endif
         if (norm > (long)maxnorm)
         {
             maxnorm = norm;

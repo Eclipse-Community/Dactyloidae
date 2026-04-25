@@ -86,8 +86,11 @@ uint FIRFilter::evaluateFilterStereo(SAMPLETYPE *dest, const SAMPLETYPE *src, ui
     assert((length != 0) && (length == ilength) && (src != NULL) && (dest != NULL) && (filterCoeffs != NULL));
 
     end = 2 * (numSamples - ilength);
+    const SAMPLETYPE *coeffsStereo = filterCoeffsStereo;
 
-    #pragma omp parallel for
+#if defined(_OPENMP)
+    #pragma omp parallel for default(none) shared(src, dest, end, ilength, coeffsStereo) private(j) schedule(static)
+#endif
     for (j = 0; j < end; j += 2) 
     {
         const SAMPLETYPE *ptr;
@@ -98,8 +101,8 @@ uint FIRFilter::evaluateFilterStereo(SAMPLETYPE *dest, const SAMPLETYPE *src, ui
 
         for (int i = 0; i < ilength; i ++)
         {
-            suml += ptr[2 * i] * filterCoeffsStereo[2 * i];
-            sumr += ptr[2 * i + 1] * filterCoeffsStereo[2 * i + 1];
+            suml += ptr[2 * i] * coeffsStereo[2 * i];
+            sumr += ptr[2 * i + 1] * coeffsStereo[2 * i + 1];
         }
 
 #ifdef SOUNDTOUCH_INTEGER_SAMPLES
@@ -133,7 +136,10 @@ uint FIRFilter::evaluateFilterMono(SAMPLETYPE *dest, const SAMPLETYPE *src, uint
     assert(ilength != 0);
 
     end = numSamples - ilength;
-    #pragma omp parallel for
+    const SAMPLETYPE *coeffs = filterCoeffs;
+#if defined(_OPENMP)
+    #pragma omp parallel for default(none) shared(src, dest, end, ilength, coeffs) private(j) schedule(static)
+#endif
     for (j = 0; j < end; j ++)
     {
         const SAMPLETYPE *pSrc = src + j;
@@ -143,7 +149,7 @@ uint FIRFilter::evaluateFilterMono(SAMPLETYPE *dest, const SAMPLETYPE *src, uint
         sum = 0;
         for (i = 0; i < ilength; i ++)
         {
-            sum += pSrc[i] * filterCoeffs[i];
+            sum += pSrc[i] * coeffs[i];
         }
 #ifdef SOUNDTOUCH_INTEGER_SAMPLES
         sum >>= resultDivFactor;
@@ -176,8 +182,11 @@ uint FIRFilter::evaluateFilterMulti(SAMPLETYPE *dest, const SAMPLETYPE *src, uin
     int ilength = length & -8;
 
     end = numChannels * (numSamples - ilength);
+    const SAMPLETYPE *coeffs = filterCoeffs;
 
-    #pragma omp parallel for
+#if defined(_OPENMP)
+    #pragma omp parallel for default(none) shared(src, dest, end, ilength, numChannels, coeffs) private(j) schedule(static)
+#endif
     for (j = 0; j < end; j += numChannels)
     {
         const SAMPLETYPE *ptr;
@@ -194,7 +203,7 @@ uint FIRFilter::evaluateFilterMulti(SAMPLETYPE *dest, const SAMPLETYPE *src, uin
 
         for (i = 0; i < ilength; i ++)
         {
-            SAMPLETYPE coef=filterCoeffs[i];
+            SAMPLETYPE coef=coeffs[i];
             for (c = 0; c < numChannels; c ++)
             {
                 sums[c] += ptr[0] * coef;
