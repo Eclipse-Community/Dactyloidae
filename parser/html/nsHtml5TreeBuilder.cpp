@@ -1216,6 +1216,14 @@ nsHtml5TreeBuilder::startTag(nsHtml5ElementName* elementName, nsHtml5HtmlAttribu
             }
             case HR: {
               implicitlyCloseP();
+              if (findLastInScope(nsHtml5Atoms::select) != nsHtml5TreeBuilder::NOT_FOUND_ON_STACK) {
+                generateImpliedEndTags();
+                if (!!MOZ_UNLIKELY(mViewSource) &&
+                    (findLastInScope(nsHtml5Atoms::option) != nsHtml5TreeBuilder::NOT_FOUND_ON_STACK ||
+                     findLastInScope(nsHtml5Atoms::optgroup) != nsHtml5TreeBuilder::NOT_FOUND_ON_STACK)) {
+                  errUnclosedElements(currentPtr, name);
+                }
+              }
               appendVoidElementToCurrentMayFoster(elementName, attributes);
               selfClosing = false;
               attributes = nullptr;
@@ -1229,6 +1237,19 @@ nsHtml5TreeBuilder::startTag(nsHtml5ElementName* elementName, nsHtml5HtmlAttribu
             case IMG:
             case KEYGEN:
             case INPUT: {
+              if (fragment && nsHtml5Atoms::select == contextName) {
+                errStartTagWithSelectOpen(name);
+                NS_HTML5_BREAK(starttagloop);
+              }
+              eltPos = findLastInScope(nsHtml5Atoms::select);
+              if (eltPos != nsHtml5TreeBuilder::NOT_FOUND_ON_STACK) {
+                errStartTagWithSelectOpen(name);
+                while (currentPtr >= eltPos) {
+                  pop();
+                }
+                resetTheInsertionMode();
+                NS_HTML5_CONTINUE(starttagloop);
+              }
               reconstructTheActiveFormattingElements();
               appendVoidElementToCurrentMayFoster(elementName, attributes, formPointer);
               selfClosing = false;
@@ -1313,33 +1334,54 @@ nsHtml5TreeBuilder::startTag(nsHtml5ElementName* elementName, nsHtml5HtmlAttribu
               NS_HTML5_BREAK(starttagloop);
             }
             case SELECT: {
+              if (fragment && nsHtml5Atoms::select == contextName) {
+                errStartSelectWhereEndSelectExpected();
+                NS_HTML5_BREAK(starttagloop);
+              }
+              eltPos = findLastInScope(nsHtml5Atoms::select);
+              if (eltPos != nsHtml5TreeBuilder::NOT_FOUND_ON_STACK) {
+                errStartSelectWhereEndSelectExpected();
+                while (currentPtr >= eltPos) {
+                  pop();
+                }
+                NS_HTML5_BREAK(starttagloop);
+              }
               reconstructTheActiveFormattingElements();
               appendToCurrentNodeAndPushElementMayFoster(elementName, attributes, formPointer);
-              switch(mode) {
-                case IN_TABLE:
-                case IN_CAPTION:
-                case IN_COLUMN_GROUP:
-                case IN_TABLE_BODY:
-                case IN_ROW:
-                case IN_CELL: {
-                  mode = IN_SELECT_IN_TABLE;
-                  break;
-                }
-                default: {
-                  mode = IN_SELECT;
-                  break;
-                }
-              }
+              framesetOk = false;
               attributes = nullptr;
               NS_HTML5_BREAK(starttagloop);
             }
-            case OPTGROUP:
             case OPTION: {
-              if (isCurrent(nsHtml5Atoms::option)) {
+              if (findLastInScope(nsHtml5Atoms::select) != nsHtml5TreeBuilder::NOT_FOUND_ON_STACK) {
+                generateImpliedEndTagsExceptFor(nsHtml5Atoms::optgroup);
+                eltPos = findLastInScope(nsHtml5Atoms::option);
+                if (!!MOZ_UNLIKELY(mViewSource) && eltPos != nsHtml5TreeBuilder::NOT_FOUND_ON_STACK) {
+                  errUnclosedElements(eltPos, name);
+                }
+              } else {
+                if (isCurrent(nsHtml5Atoms::option)) {
+                  pop();
+                }
+              }
+              reconstructTheActiveFormattingElements();
+              appendToCurrentNodeAndPushElement(elementName, attributes);
+              attributes = nullptr;
+              NS_HTML5_BREAK(starttagloop);
+            }
+            case OPTGROUP: {
+              if (findLastInScope(nsHtml5Atoms::select) != nsHtml5TreeBuilder::NOT_FOUND_ON_STACK) {
+                generateImpliedEndTags();
+                if (!!MOZ_UNLIKELY(mViewSource) &&
+                    (findLastInScope(nsHtml5Atoms::option) != nsHtml5TreeBuilder::NOT_FOUND_ON_STACK ||
+                     findLastInScope(nsHtml5Atoms::optgroup) != nsHtml5TreeBuilder::NOT_FOUND_ON_STACK)) {
+                  errUnclosedElements(currentPtr, name);
+                }
+              } else if (isCurrent(nsHtml5Atoms::option)) {
                 pop();
               }
               reconstructTheActiveFormattingElements();
-              appendToCurrentNodeAndPushElementMayFoster(elementName, attributes);
+              appendToCurrentNodeAndPushElement(elementName, attributes);
               attributes = nullptr;
               NS_HTML5_BREAK(starttagloop);
             }
@@ -2697,6 +2739,21 @@ nsHtml5TreeBuilder::endTag(nsHtml5ElementName* elementName)
           case TEMPLATE: {
             break;
           }
+          case SELECT: {
+            eltPos = findLastInScope(name);
+            if (eltPos == nsHtml5TreeBuilder::NOT_FOUND_ON_STACK) {
+              errStrayEndTag(name);
+            } else {
+              generateImpliedEndTags();
+              if (!!MOZ_UNLIKELY(mViewSource) && !isCurrent(name)) {
+                errUnclosedElements(eltPos, name);
+              }
+              while (currentPtr >= eltPos) {
+                pop();
+              }
+            }
+            NS_HTML5_BREAK(endtagloop);
+          }
           case AREA_OR_WBR:
 #ifdef ENABLE_VOID_MENUITEM
           case MENUITEM:
@@ -2712,7 +2769,6 @@ nsHtml5TreeBuilder::endTag(nsHtml5ElementName* elementName)
           case IFRAME:
           case NOEMBED:
           case NOFRAMES:
-          case SELECT:
           case TABLE:
           case TEXTAREA: {
             errStrayEndTag(name);
@@ -3335,23 +3391,7 @@ nsHtml5TreeBuilder::resetTheInsertionMode()
         return;
       }
     }
-    if (nsHtml5Atoms::select == name) {
-      int32_t ancestorIndex = i;
-      while (ancestorIndex > 0) {
-        nsHtml5StackNode* ancestor = stack[ancestorIndex--];
-        if (kNameSpaceID_XHTML == ancestor->ns) {
-          if (nsHtml5Atoms::template_ == ancestor->name) {
-            break;
-          }
-          if (nsHtml5Atoms::table == ancestor->name) {
-            mode = IN_SELECT_IN_TABLE;
-            return;
-          }
-        }
-      }
-      mode = IN_SELECT;
-      return;
-    } else if (nsHtml5Atoms::td == name || nsHtml5Atoms::th == name) {
+    if (nsHtml5Atoms::td == name || nsHtml5Atoms::th == name) {
       mode = IN_CELL;
       return;
     } else if (nsHtml5Atoms::tr == name) {

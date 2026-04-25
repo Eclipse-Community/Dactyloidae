@@ -866,7 +866,7 @@ nsHtml5ElementName::initializeStatics()
   ELT_RECT = new nsHtml5ElementName(nsHtml5Atoms::rect, nsHtml5Atoms::rect, NS_NewHTMLUnknownElement, NS_NewSVGRectElement, nsHtml5TreeBuilder::OTHER);
   ELT_RADIALGRADIENT = new nsHtml5ElementName(nsHtml5Atoms::radialgradient, nsHtml5Atoms::radialGradient, NS_NewHTMLUnknownElement, NS_NewSVGRadialGradientElement, nsHtml5TreeBuilder::OTHER);
   ELT_ROOT = new nsHtml5ElementName(nsHtml5Atoms::root, nsHtml5Atoms::root, NS_NewHTMLUnknownElement, NS_NewSVGUnknownElement, nsHtml5TreeBuilder::OTHER);
-  ELT_SELECT = new nsHtml5ElementName(nsHtml5Atoms::select, nsHtml5Atoms::select, NS_NewHTMLSelectElement, NS_NewSVGUnknownElement, nsHtml5TreeBuilder::SELECT | SPECIAL);
+  ELT_SELECT = new nsHtml5ElementName(nsHtml5Atoms::select, nsHtml5Atoms::select, NS_NewHTMLSelectElement, NS_NewSVGUnknownElement, nsHtml5TreeBuilder::SELECT | SPECIAL | SCOPING);
   ELT_SCALARPRODUCT = new nsHtml5ElementName(nsHtml5Atoms::scalarproduct, nsHtml5Atoms::scalarproduct, NS_NewHTMLUnknownElement, NS_NewSVGUnknownElement, nsHtml5TreeBuilder::OTHER);
   ELT_SUBSET = new nsHtml5ElementName(nsHtml5Atoms::subset, nsHtml5Atoms::subset, NS_NewHTMLUnknownElement, NS_NewSVGUnknownElement, nsHtml5TreeBuilder::OTHER);
   ELT_SLOT = new nsHtml5ElementName(nsHtml5Atoms::slot, nsHtml5Atoms::slot, NS_NewHTMLSlotElement, NS_NewSVGUnknownElement, nsHtml5TreeBuilder::OTHER);

@@ -2162,7 +2162,7 @@ public final class ElementName
     public static final ElementName SELECT = new ElementName("select", "select", 
     // CPPONLY: NS_NewHTMLSelectElement,
     // CPPONLY: NS_NewSVGUnknownElement, 
-    TreeBuilder.SELECT | SPECIAL);
+    TreeBuilder.SELECT | SPECIAL | SCOPING);
     public static final ElementName SCALARPRODUCT = new ElementName("scalarproduct", "scalarproduct", 
     // CPPONLY: NS_NewHTMLUnknownElement,
     // CPPONLY: NS_NewSVGUnknownElement, 
