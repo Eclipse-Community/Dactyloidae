@@ -140,6 +140,14 @@
           <description class="text-blurb" id="communityDesc">
           Dactyloidae is released by <label class="text-link" href="https://eclipse.cx">Eclipse Community</label>.
 		      </description>
+
+          <description class="text-blurb">
+          Dactyloidae is based on the work of the UXP team, aswell as the work of the Mozilla developers.
+		      </description>
+          
+          <description class="text-blurb">
+          Learn <label class="text-link" useoriginprincipal="true" href="about:credits">who contributed</label> to this software.
+		      </description>
 		
           <description class="text-blurb" id="contributeDesc">
 		      If you wish to contribute, please consider helping out by getting involved in our development by tackling some of the issues found in our <label class="text-link" href="https://github.com/Eclipse-Community/Dactyloidae/">GitHub issue tracker</label>.
