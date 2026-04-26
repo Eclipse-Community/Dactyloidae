@@ -354,8 +354,7 @@ TimerThread::Shutdown()
     // might potentially call some code reentering the same lock
     // that leads to unexpected behavior or deadlock.
     // See bug 422472.
-    timers.AppendElements(mTimers);
-    mTimers.Clear();
+    timers.SwapElements(mTimers);
   }
 
   uint32_t timersCount = timers.Length();

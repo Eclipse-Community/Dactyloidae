@@ -103,13 +103,23 @@ static LayerSortOrder CompareDepth(Layer* aOne, Layer* aTwo) {
   // Could we just check Contains() on the bounds rects. ie, is it possible
   // for layers to overlap without intersections (in 2d space) and yet still
   // have their bounds rects not completely enclose each other?
-  nsTArray<gfxPoint> points;
+  AutoTArray<gfxPoint, 24> points;
+  auto appendUniquePoint = [&points](const gfxPoint& aPoint) {
+    static const gfxFloat kDuplicateEpsilon = 0.01;
+    for (const auto& point : points) {
+      if (fabs(point.x - aPoint.x) < kDuplicateEpsilon &&
+          fabs(point.y - aPoint.y) < kDuplicateEpsilon) {
+        return;
+      }
+    }
+    points.AppendElement(aPoint);
+  };
   for (uint32_t i = 0; i < 4; i++) {
     if (ourTransformedRect.Contains(otherTransformedRect.mPoints[i])) {
-      points.AppendElement(otherTransformedRect.mPoints[i]);
+      appendUniquePoint(otherTransformedRect.mPoints[i]);
     }
     if (otherTransformedRect.Contains(ourTransformedRect.mPoints[i])) {
-      points.AppendElement(ourTransformedRect.mPoints[i]);
+      appendUniquePoint(ourTransformedRect.mPoints[i]);
     }
   }
   
@@ -123,7 +133,7 @@ static LayerSortOrder CompareDepth(Layer* aOne, Layer* aTwo) {
       gfxLineSegment two(otherTransformedRect.mPoints[j],
                          otherTransformedRect.mPoints[(j + 1) % 4]);
       if (one.Intersects(two, intersection)) {
-        points.AppendElement(intersection);
+        appendUniquePoint(intersection);
       }
     }
   }

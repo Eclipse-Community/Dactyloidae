@@ -30,6 +30,8 @@ public:
   NS_DECL_NSIASYNCINPUTSTREAM
 
   void AllowInput();
+  bool IsQueued() const;
+  void SetQueued(bool aQueued);
 
 private:
 
@@ -41,6 +43,7 @@ private:
 
   nsCOMPtr<nsIInputStreamCallback> mCallback;
   nsCOMPtr<nsIEventTarget> mEventTarget;
+  bool mIsQueued;
 };
 
 NS_IMPL_ISUPPORTS(ThrottleInputStream, nsIAsyncInputStream, nsIInputStream, nsISeekableStream)
@@ -49,6 +52,7 @@ ThrottleInputStream::ThrottleInputStream(nsIInputStream *aStream, ThrottleQueue*
   : mStream(aStream)
   , mQueue(aQueue)
   , mClosedStatus(NS_OK)
+  , mIsQueued(false)
 {
   MOZ_ASSERT(aQueue != nullptr);
 }
@@ -233,6 +237,18 @@ ThrottleInputStream::AllowInput()
   callbackEvent->OnInputStreamReady(this);
 }
 
+bool
+ThrottleInputStream::IsQueued() const
+{
+  return mIsQueued;
+}
+
+void
+ThrottleInputStream::SetQueued(bool aQueued)
+{
+  mIsQueued = aQueued;
+}
+
 //-----------------------------------------------------------------------------
 
 NS_IMPL_ISUPPORTS(ThrottleQueue, nsIInputChannelThrottleQueue, nsITimerCallback)
@@ -348,6 +364,7 @@ ThrottleQueue::Notify(nsITimer* aTimer)
   // Optimistically notify all the waiting readers, and then let them
   // requeue if there isn't enough bandwidth.
   for (size_t i = 0; i < events.Length(); ++i) {
+    events[i]->SetQueued(false);
     events[i]->AllowInput();
   }
 
@@ -359,7 +376,8 @@ void
 ThrottleQueue::QueueStream(ThrottleInputStream* aStream)
 {
   MOZ_ASSERT(PR_GetCurrentThread() == gSocketThread);
-  if (mAsyncEvents.IndexOf(aStream) == mAsyncEvents.NoIndex) {
+  if (!aStream->IsQueued()) {
+    aStream->SetQueued(true);
     mAsyncEvents.AppendElement(aStream);
 
     if (!mTimerArmed) {
@@ -386,7 +404,12 @@ void
 ThrottleQueue::DequeueStream(ThrottleInputStream* aStream)
 {
   MOZ_ASSERT(PR_GetCurrentThread() == gSocketThread);
+  if (!aStream->IsQueued()) {
+    return;
+  }
+
   mAsyncEvents.RemoveElement(aStream);
+  aStream->SetQueued(false);
 }
 
 }

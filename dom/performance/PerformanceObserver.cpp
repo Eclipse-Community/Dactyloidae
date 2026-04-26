@@ -10,9 +10,11 @@
 #include "mozilla/dom/PerformanceEntryBinding.h"
 #include "mozilla/dom/PerformanceObserverBinding.h"
 #include "nsIScriptError.h"
+#include "nsHashKeys.h"
 #include "nsPIDOMWindow.h"
 #include "nsQueryObject.h"
 #include "nsString.h"
+#include "nsTHashtable.h"
 #include "PerformanceEntry.h"
 #include "PerformanceObserverEntryList.h"
 #include "WorkerPrivate.h"
@@ -225,19 +227,28 @@ void PerformanceObserver::Observe(const PerformanceObserverInit& aOptions,
     }
 
     /* 3.3.1.5.2 */
+    nsTHashtable<nsStringHashKey> requestedTypes(entryTypes.Length());
+    for (const auto& type : entryTypes) {
+      requestedTypes.PutEntry(type);
+    }
+
     nsTArray<nsString> validEntryTypes;
     for (const char16_t* name : sValidTypeNames) {
       nsDependentString validTypeName(name);
-      if (entryTypes.Contains<nsString>(validTypeName) &&
-          !validEntryTypes.Contains<nsString>(validTypeName)) {
+      if (requestedTypes.GetEntry(validTypeName)) {
         validEntryTypes.AppendElement(validTypeName);
       }
+    }
+
+    nsTHashtable<nsStringHashKey> validTypeSet(validEntryTypes.Length());
+    for (const auto& validType : validEntryTypes) {
+      validTypeSet.PutEntry(validType);
     }
 
     nsAutoString invalidTypesJoined;
     bool addComma = false;
     for (const auto& type : entryTypes) {
-      if (!validEntryTypes.Contains<nsString>(type)) {
+      if (!validTypeSet.GetEntry(type)) {
         if (addComma) {
           invalidTypesJoined.AppendLiteral(", ");
         }
@@ -289,13 +300,13 @@ void PerformanceObserver::Observe(const PerformanceObserverInit& aOptions,
 
     /* 3.3.1.6.4, 3.3.1.6.4 */
     bool didUpdateOptionsList = false;
-    nsTArray<PerformanceObserverInit> updatedOptionsList;
+    nsTArray<PerformanceObserverInit> updatedOptionsList(mOptions.Length() + 1);
     for (auto& option : mOptions) {
       if (option.mType.WasPassed() && option.mType.Value() == type) {
         updatedOptionsList.AppendElement(aOptions);
         didUpdateOptionsList = true;
       } else {
-        updatedOptionsList.AppendElement(option);
+        updatedOptionsList.AppendElement(Move(option));
       }
     }
     if (!didUpdateOptionsList) {
