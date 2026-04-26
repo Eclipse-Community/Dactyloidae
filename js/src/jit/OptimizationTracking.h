@@ -167,10 +167,17 @@ class UniqueTrackedOptimizations
     // TempOptimizationAttemptsVectors sorted by frequency.
     SortedVector sorted_;
 
+    mutable const TempOptimizationTypeInfoVector* lastTypes_;
+    mutable const TempOptimizationAttemptsVector* lastAttempts_;
+    mutable uint8_t lastIndex_;
+
   public:
     explicit UniqueTrackedOptimizations(JSContext* cx)
       : map_(cx),
-        sorted_(cx)
+        sorted_(cx),
+        lastTypes_(nullptr),
+        lastAttempts_(nullptr),
+        lastIndex_(UINT8_MAX)
     { }
 
     MOZ_MUST_USE bool init() { return map_.init(); }

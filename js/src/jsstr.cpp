@@ -2061,6 +2061,17 @@ js::str_includes(JSContext* cx, unsigned argc, Value* vp)
     // Step 12
     uint32_t start = Min(Max(pos, 0U), textLen);
 
+    uint32_t searchLen = searchStr->length();
+    if (searchLen == 0) {
+        args.rval().setBoolean(true);
+        return true;
+    }
+
+    if (searchLen > textLen - start) {
+        args.rval().setBoolean(false);
+        return true;
+    }
+
     // Steps 13 and 14
     JSLinearString* text = str->ensureLinear(cx);
     if (!text)
@@ -2112,6 +2123,17 @@ js::str_indexOf(JSContext* cx, unsigned argc, Value* vp)
 
     // Step 9
     uint32_t start = Min(Max(pos, 0U), textLen);
+
+    uint32_t searchLen = searchStr->length();
+    if (searchLen == 0) {
+        args.rval().setInt32(start);
+        return true;
+    }
+
+    if (searchLen > textLen - start) {
+        args.rval().setInt32(-1);
+        return true;
+    }
 
     // Steps 10 and 11
     JSLinearString* text = str->ensureLinear(cx);
@@ -2174,6 +2196,11 @@ js::str_lastIndexOf(JSContext* cx, unsigned argc, Value* vp)
     // Step 8.
     size_t searchLen = searchStr->length();
 
+    if (searchLen > len) {
+        args.rval().setInt32(-1);
+        return true;
+    }
+
     // Steps 4-5, 7.
     int start = len - searchLen; // Start searching here
     if (args.hasDefined(1)) {
@@ -2195,11 +2222,6 @@ js::str_lastIndexOf(JSContext* cx, unsigned argc, Value* vp)
                     start = int(d);
             }
         }
-    }
-
-    if (searchLen > len) {
-        args.rval().setInt32(-1);
-        return true;
     }
 
     if (searchLen == 0) {

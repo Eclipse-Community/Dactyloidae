@@ -339,13 +339,25 @@ uint8_t
 UniqueTrackedOptimizations::indexOf(const TrackedOptimizations* optimizations) const
 {
     MOZ_ASSERT(sorted());
+
+    if (lastTypes_ == &optimizations->types_ &&
+        lastAttempts_ == &optimizations->attempts_ &&
+        lastIndex_ != UINT8_MAX)
+    {
+        return lastIndex_;
+    }
+
     Key key;
     key.types = &optimizations->types_;
     key.attempts = &optimizations->attempts_;
     AttemptsMap::Ptr p = map_.lookup(key);
     MOZ_ASSERT(p);
     MOZ_ASSERT(p->value().index != UINT8_MAX);
-    return p->value().index;
+    uint8_t index = p->value().index;
+    lastTypes_ = key.types;
+    lastAttempts_ = key.attempts;
+    lastIndex_ = index;
+    return index;
 }
 
 // Assigns each unique tracked type an index; outputs a compact list.
@@ -366,11 +378,15 @@ class jit::UniqueTrackedTypes
     TypesMap map_;
 
     Vector<TypeSet::Type, 1> list_;
+        Maybe<TypeSet::Type> lastType_;
+        uint8_t lastTypeIndex_;
 
   public:
     explicit UniqueTrackedTypes(JSContext* cx)
       : map_(cx),
-        list_(cx)
+                list_(cx),
+                lastType_(Nothing()),
+                lastTypeIndex_(0)
     { }
 
     bool init() { return map_.init(); }
@@ -383,9 +399,17 @@ class jit::UniqueTrackedTypes
 bool
 UniqueTrackedTypes::getIndexOf(JSContext* cx, TypeSet::Type ty, uint8_t* indexp)
 {
+    if (lastType_.isSome() && *lastType_ == ty) {
+        *indexp = lastTypeIndex_;
+        return true;
+    }
+
     TypesMap::AddPtr p = map_.lookupForAdd(ty);
     if (p) {
-        *indexp = p->value();
+        uint8_t index = p->value();
+        lastType_ = Some(ty);
+        lastTypeIndex_ = index;
+        *indexp = index;
         return true;
     }
 
@@ -399,6 +423,8 @@ UniqueTrackedTypes::getIndexOf(JSContext* cx, TypeSet::Type ty, uint8_t* indexp)
         return false;
     if (!list_.append(ty))
         return false;
+    lastType_ = Some(ty);
+    lastTypeIndex_ = index;
     *indexp = index;
     return true;
 }
