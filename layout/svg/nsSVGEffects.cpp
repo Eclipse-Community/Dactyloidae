@@ -670,6 +670,7 @@ nsSVGEffects::EffectProperties::GetMaskFrames()
 
   bool ok = false;
   const nsTArray<RefPtr<nsSVGPaintingProperty>>& props = mMask->GetProps();
+  result.SetCapacity(props.Length());
   for (size_t i = 0; i < props.Length(); i++) {
     nsSVGMaskFrame* maskFrame =
       static_cast<nsSVGMaskFrame *>(props[i]->GetReferencedFrame(
@@ -731,6 +732,7 @@ nsSVGRenderingObserverList::InvalidateAll()
     return;
 
   AutoTArray<nsSVGRenderingObserver*,10> observers;
+  observers.SetCapacity(mObservers.Count());
 
   for (auto it = mObservers.Iter(); !it.Done(); it.Next()) {
     observers.AppendElement(it.Get()->GetKey());
@@ -749,6 +751,7 @@ nsSVGRenderingObserverList::InvalidateAllForReflow()
     return;
 
   AutoTArray<nsSVGRenderingObserver*,10> observers;
+  observers.SetCapacity(mObservers.Count());
 
   for (auto it = mObservers.Iter(); !it.Done(); it.Next()) {
     nsSVGRenderingObserver* obs = it.Get()->GetKey();
@@ -767,6 +770,7 @@ void
 nsSVGRenderingObserverList::RemoveAll()
 {
   AutoTArray<nsSVGRenderingObserver*,10> observers;
+  observers.SetCapacity(mObservers.Count());
 
   for (auto it = mObservers.Iter(); !it.Done(); it.Next()) {
     observers.AppendElement(it.Get()->GetKey());

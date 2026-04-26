@@ -530,7 +530,7 @@ nsStyleSet::GatherRuleProcessors(SheetType aType)
         scope->SetIsScopedStyleRoot();
 
         // Create a rule processor for the scope.
-        nsTArray<RefPtr<CSSStyleSheet>> sheetsForScope;
+        nsTArray<RefPtr<CSSStyleSheet>> sheetsForScope(end - start);
         sheetsForScope.AppendElements(sheets.Elements() + start, end - start);
         nsCSSRuleProcessor* oldRP = oldScopedRuleProcessorHash.Get(scope);
         mScopedDocSheetRuleProcessors.AppendElement
