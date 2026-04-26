@@ -9,7 +9,7 @@
 # BrandFullNameInternal is used for some registry and file system values
 # instead of BrandFullName and typically should not be modified.
 !define BrandFullNameInternal "Dactyloidae"
-!define CompanyName           "OwnedByWuigi"
+!define CompanyName           "Eclipse Community"
 !define URLInfoAbout          "about:blank"
 !define URLUpdateInfo         "about:blank"
 !define HelpLink              "about:blank"

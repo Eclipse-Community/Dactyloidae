@@ -5,8 +5,17 @@
 #aboutDialogContainer {
   background-image: url("chrome://branding/content/about-background.png");
   background-repeat: no-repeat;
+  background-position: center top;
   background-color: rgb(10,17,37);
   color: #fff;
+}
+
+#clientBox {
+  -moz-box-pack: center;
+}
+
+#leftBox {
+  visibility: collapse;
 }
 
 .text-link {
@@ -15,9 +24,9 @@
 }
 
 #rightBox {
-  /* this margin prevents text from overlapping the planet image */
-  margin-left: 180px;
-  margin-right: 20px;
+  -moz-box-flex: 1 !important;
+  margin-left: 0;
+  margin-right: 0;
 }
 
 #bottomBox {

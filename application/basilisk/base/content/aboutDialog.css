@@ -10,9 +10,15 @@
   line-height: 1.5;
 }
 
+#aboutDialog label,
+#aboutDialog description {
+  text-align: center;
+}
+
 #rightBox {
   background-image: url("chrome://branding/content/about-wordmark.svg");
   background-repeat: no-repeat;
+  background-position: center top;
   /* padding-top creates room for the wordmark */
   padding-top: 38px;
   margin-top:20px;
