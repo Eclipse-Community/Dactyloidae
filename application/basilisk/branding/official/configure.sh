@@ -10,6 +10,8 @@ MOZ_APP_DISPLAYNAME="Dactyloidae"
 
 MOZ_APP_UA_NAME="Basilisk"
 
+MOZ_DACTYLIC_UAVERSION="1.0"
+
 MOZ_APP_VENDOR="Eclipse Community"
 
 MOZ_APP_FULLNAME="Dactyloidae"
