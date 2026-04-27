@@ -41,7 +41,7 @@ PlatformThreadId CurrentThreadId() {
   ret = gettid();
 #else
   // Default implementation for nacl and solaris.
-  ret = reinterpret_cast<pid_t>(pthread_self());
+  ret = reinterpret_cast<pid_t>(reinterpret_cast<uintptr_t>(pthread_self()));
 #endif
 #endif  // defined(WEBRTC_POSIX)
   RTC_DCHECK(ret);
