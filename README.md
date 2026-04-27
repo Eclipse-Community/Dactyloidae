@@ -6,7 +6,7 @@
 
 Dactyloidae is a hard fork of Eclipse Hydra.
 
-Dactyloidae hosts further development based on the Eclipse, roytam1, Moonchild Productions and Mozilla upstream code, this repository has its own development as well. We also upstream applicable patches from our development to all above people/groups we upstream from.
+Dactyloidae hosts further development based on the Eclipse, roytam1, Moonchild Productions and Mozilla upstream code, this repository has its own development as well. We also upstream applicable patches from our development to all above people/groups we fork from.
 
 Some advantages over Eclipse Hydra, roytam1's Serpent, Pale Moon/Basilisk and upstream Mozilla are:
 - More optimizations
