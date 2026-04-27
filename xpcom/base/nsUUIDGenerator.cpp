@@ -170,22 +170,6 @@ nsUUIDGenerator::GenerateUUIDInPlace(nsID* aId)
   }
 #endif /* HAVE_ARC4RANDOM_BUF */
 
-    uint8_t* src = (uint8_t*)&rval;
-    // We want to grab the mRBytes least significant bytes of rval, since
-    // mRBytes less than sizeof(rval) means the high bytes are 0.
-#ifdef IS_BIG_ENDIAN
-    src += sizeof(rval) - mRBytes;
-#endif
-    uint8_t* dst = ((uint8_t*)aId) + (sizeof(nsID) - bytesLeft);
-    size_t toWrite = (bytesLeft < mRBytes ? bytesLeft : mRBytes);
-    for (size_t i = 0; i < toWrite; i++) {
-      dst[i] = src[i];
-    }
-
-    bytesLeft -= toWrite;
-  }
-#endif /* HAVE_ARC4RANDOM_BUF */
-
   /* Put in the version */
   aId->m2 &= 0x0fff;
   aId->m2 |= 0x4000;
