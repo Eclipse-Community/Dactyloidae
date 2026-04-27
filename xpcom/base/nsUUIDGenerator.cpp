@@ -169,6 +169,7 @@ nsUUIDGenerator::GenerateUUIDInPlace(nsID* aId)
     bytesLeft -= toCopy;
   }
 #endif /* HAVE_ARC4RANDOM_BUF */
+#endif /* non-Linux or Linux fallback */
 
   /* Put in the version */
   aId->m2 &= 0x0fff;
