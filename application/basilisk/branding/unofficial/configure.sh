@@ -10,13 +10,15 @@ MOZ_APP_DISPLAYNAME="Dactyloidae"
 
 MOZ_APP_UA_NAME="Dactyloidae"
 
+MOZ_DACTYLIC_UAVERSION="1.0"
+
 MOZ_APP_VENDOR="Eclipse Community"
 
 MOZ_APP_FULLNAME="Dactyloidae"
 
 MOZ_APP_PROFILE="Eclipse Community/Dactyloidae"
 
-MOZ_APP_REMOTINGNAME=com.Eclipse Community.Dactyloidae
+MOZ_APP_REMOTINGNAME=com.EclipseCommunity.Dactyloidae
 
 MOZ_DISTRIBUTION_ID=com.opensource
 

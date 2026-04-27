@@ -771,6 +771,12 @@ nsHttpHandler::BuildUserAgent()
     mUserAgent += '/';
     mUserAgent += mProductSub;
 
+    // Add a configurable Dactylic slice alongside the Goanna token.
+    if (sizeof(MOZ_DACTYLIC_UAVERSION) > 1) {
+        mUserAgent.AppendLiteral(" Dactylic/");
+        mUserAgent.AppendLiteral(MOZ_DACTYLIC_UAVERSION);
+    }
+
     bool isFirefox = mAppName.EqualsLiteral("Firefox");
     if (isFirefox || mCompatFirefoxEnabled) {
         // Provide "Firefox/x.y" (compatibility) app token
