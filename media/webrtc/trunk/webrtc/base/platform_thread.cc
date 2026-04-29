@@ -39,6 +39,8 @@ PlatformThreadId CurrentThreadId() {
   ret =  syscall(__NR_gettid);
 #elif defined(WEBRTC_ANDROID)
   ret = gettid();
+#elif defined(__NetBSD__)
+  ret = _lwp_self();
 #else
   // Default implementation for nacl and solaris.
   ret = reinterpret_cast<pid_t>(reinterpret_cast<uintptr_t>(pthread_self()));
