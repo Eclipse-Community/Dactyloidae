@@ -10,16 +10,10 @@
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
-#if defined(__NetBSD__)
-#include <sys/audioio.h>
-#else
 #include <sys/audio.h>
-#endif
 #include <sys/stat.h>
 #include <unistd.h>
-#if defined(__sun) || defined(SunOS)
 #include <sys/stropts.h>
-#endif
 #include "cubeb/cubeb.h"
 #include "cubeb-internal.h"
 

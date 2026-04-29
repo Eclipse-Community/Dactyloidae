@@ -44,7 +44,7 @@ if CONFIG['MOZ_SNDIO']:
     ]
     DEFINES['USE_SNDIO'] = True
 
-if CONFIG['OS_ARCH'] in ('SunOS', 'NetBSD'):
+if CONFIG['OS_ARCH'] == 'SunOS':
     SOURCES += [
         'cubeb_sun.c',
     ]
