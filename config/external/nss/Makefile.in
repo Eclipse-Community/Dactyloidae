@@ -421,11 +421,11 @@ endif # MOZ_FOLD_LIBS
 
 DEFAULT_GMAKE_FLAGS += PYTHON='$(PYTHON)'
 DEFAULT_GMAKE_FLAGS += NSINSTALL_PY='$(abspath $(topsrcdir)/config/nsinstall.py)'
-# Use Python nsinstall if the compiled binary doesn't exist yet
-ifeq (,$(wildcard $(NSINSTALL)))
-DEFAULT_GMAKE_FLAGS += NSINSTALL='$$(PYTHON) $$(NSINSTALL_PY)'
-else
+# Use Python nsinstall on BSD systems for compatibility
+ifeq (,$(filter NetBSD FreeBSD OpenBSD DragonFly,$(OS_ARCH)))
 DEFAULT_GMAKE_FLAGS += NSINSTALL='$(abspath $(NSINSTALL))'
+else
+DEFAULT_GMAKE_FLAGS += NSINSTALL='$$(PYTHON) $$(NSINSTALL_PY)'
 endif
 ifeq ($(OS_ARCH),WINNT)
 DEFAULT_GMAKE_FLAGS += INSTALL='$$(NSINSTALL) -t'
